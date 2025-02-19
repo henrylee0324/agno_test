@@ -1,7 +1,7 @@
 #import streamlit as st
 from textwrap import dedent
 from teams import V2MTeam
-from agents import WebAgent, YfinanceAgent, EmailAgent, FileAgent
+from agents import WebAgent, YfinanceAgent, FileAgent, RetrieverAgent
 from tools import SpeechProcessor
 from tools.speech_processor import WhisperTranscriptionService, GoogleTranscriptionService
 from datetime import datetime
@@ -11,14 +11,14 @@ from agno.models.openai import OpenAIChat
 
 web_agent = WebAgent()
 yfinance_agent=YfinanceAgent()
-email_agent = EmailAgent()
 file_agent = FileAgent()
+retriever_agent = RetrieverAgent()
 speech_processor = SpeechProcessor(WhisperTranscriptionService())
 
 
 def initv2m():
     return V2MTeam(
-    team=[web_agent.agent, yfinance_agent.agent, email_agent.agent, file_agent.agent],
+    team=[retriever_agent.agent],
     instructions = [
     "Today’s date is " + datetime.now().strftime("%Y-%m-%d"),
     "You are a Leader of other sub-agent(s), responsible for understanding the user’s request in detail and determining which Agent(s) are needed based on the request’s nature and complexity.",
@@ -44,13 +44,13 @@ if __name__ == "__main__":
     1. 本週新聞摘要
     2. 台積電收盤價
     3. 做成pdf檔
-    4. 寄送作為附件寄送給110501003@g.nccu.edu.tw
     """
+    text_prompt_2 = " 有多少人或組織跟川普之間有利害關係?請給我清單。"
 
     #print(text_prompt)
     v2m_team = initv2m()
     response_text = ""
-    for response in v2m_team.ask(text_prompt):
+    for response in v2m_team.ask(text_prompt_2):
         response_text += response  # 拼接片段
     print(response_text.strip())  # 去除多餘空格
 
