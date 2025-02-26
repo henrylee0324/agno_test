@@ -1,7 +1,7 @@
 #import streamlit as st
 from textwrap import dedent
 from teams import V2MTeam
-from agents import WebAgent, YfinanceAgent, FileAgent, GraphRetrieverAgent
+from agents import WebAgent, YfinanceAgent, FileAgent, GraphRetrieverAgent, VectorRetrieverAgent
 from tools import SpeechProcessor
 from tools.speech_processor import WhisperTranscriptionService, GoogleTranscriptionService
 from datetime import datetime
@@ -15,8 +15,7 @@ web_agent = WebAgent()
 yfinance_agent=YfinanceAgent()
 file_agent = FileAgent()
 graph_retriever_agent = GraphRetrieverAgent()
-speech_processor = SpeechProcessor(WhisperTranscriptionService())
-
+vector_retriever_agent = VectorRetrieverAgent()
 
 def initv2m():
     return V2MTeam(
@@ -37,7 +36,7 @@ def initv2m():
     )
 v2m_team = initv2m()
 
-app = Playground(agents=[graph_retriever_agent.agent, yfinance_agent.agent, web_agent.agent, v2m_team.team]).get_app()
+app = Playground(agents=[graph_retriever_agent.agent, vector_retriever_agent.agent , yfinance_agent.agent, web_agent.agent, v2m_team.team]).get_app()
 
 if __name__ == "__main__":
     serve_playground_app('main:app')

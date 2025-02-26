@@ -1,18 +1,18 @@
 from agno.agent import Agent
 from agno.models.openai import OpenAIChat
-from tools.graph_retriever_tool import GraphRetrieverTools
+from tools.vector_retriever_tool import VectorRetrieverTools
 
-class GraphRetrieverAgent:
+class VectorRetrieverAgent:
     def __init__(self):
         self.agent = Agent(
-            name="Graph Retriever Agent",
-            role="Retrieve relevant data from the neo4j database according to the query",
+            name="Vector Retriever Agent",
+            role="Retrieve relevant data from the vector database according to the query",
             model=OpenAIChat(id="gpt-4o-mini"),
             instructions=[
                 "You are responsible for retrieving relevant data from the index according to the query.",
                 "Please ensure the accuracy and relevance of the retrieved data.",
             ],
-            tools=[GraphRetrieverTools(use_rerank=False)],  # 啟用 RerankRetriever 提升結果準確性
+            tools=[VectorRetrieverTools()],
             show_tool_calls=True,
             debug_mode=True
         )

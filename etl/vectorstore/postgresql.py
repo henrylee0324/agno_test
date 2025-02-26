@@ -38,27 +38,29 @@ class Postgresql(Vectorstore):
         return file_id
 
     def store_chunk(self, file_name, chunk_text, page_number=None, timestamp=None):
-        """ 存储文本块到 chunks 表，每个 chunk 关联一个新的 file_id """
-        file_id = self.store_file(file_name) 
+        """ 存储文本块到 chunks 表，并存储嵌入 """
+        file_id = self.store_file(file_name)  # 每次创建一个新的 file_id
         embedding = self._generate_embedding(chunk_text)
-        embedding_json = json.dumps(embedding)
+        embedding_json = json.dumps(embedding)  # 转换为 JSON 格式存储
 
         if timestamp is None:
             timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
 
         chunk_query = text("""
-            INSERT INTO chunks (file_id, page_number, timestamp, chunk_text)
-            VALUES (:file_id, :page_number, :timestamp, :chunk_text)
+            INSERT INTO chunks (file_id, page_number, timestamp, chunk_text, embedding)
+            VALUES (:file_id, :page_number, :timestamp, :chunk_text, :embedding)
         """)
 
         self.conn.execute(chunk_query, {
             "file_id": file_id,
             "page_number": page_number,
             "timestamp": timestamp,
-            "chunk_text": chunk_text
+            "chunk_text": chunk_text,
+            "embedding": embedding_json
         })
 
         self.conn.commit()
+
 
 if __name__ == "__main__":
     vectorstore = Postgresql()
