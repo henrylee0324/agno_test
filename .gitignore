@@ -25,6 +25,7 @@
 
 # ignore storage dir
 /storage
+env
 .images
 
 # ignore wip dir
@@ -58,3 +59,6 @@ audio_generations
 token.json
 
 .composio.lock
+
+.git
+

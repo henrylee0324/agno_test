@@ -12,7 +12,7 @@ import os
 def warn() -> None:
     logger.warning("RetrieverTools allows querying and retrieving indexed data. Ensure proper query handling.")
 
-class RetrieverTools(Toolkit):
+class GraphRetrieverTools(Toolkit):
     def __init__(
         self,
         use_rerank: bool = False  # 是否啟用 RerankRetriever

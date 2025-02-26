@@ -1,8 +1,8 @@
 from agno.agent import Agent
 from agno.models.openai import OpenAIChat
-from tools.retriever_tool import RetrieverTools
+from tools.graph_retriever_tool import GraphRetrieverTools
 
-class RetrieverAgent:
+class GraphRetrieverAgent:
     def __init__(self):
         self.agent = Agent(
             name="Retriever Agent",
@@ -12,7 +12,7 @@ class RetrieverAgent:
                 "You are responsible for retrieving relevant data from the index according to the query.",
                 "Please ensure the accuracy and relevance of the retrieved data.",
             ],
-            tools=[RetrieverTools(use_rerank=False)],  # 啟用 RerankRetriever 提升結果準確性
+            tools=[GraphRetrieverTools(use_rerank=False)],  # 啟用 RerankRetriever 提升結果準確性
             show_tool_calls=True,
             debug_mode=True
         )
