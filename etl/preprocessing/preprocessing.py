@@ -91,19 +91,6 @@ class Preprocessor:
             text = file.read()
         return self.clean_text(text)
 
-    def extract_text_from_csv(self, csv_path: str, column: str) -> List[str]:
-        """
-        從 CSV 文件中提取指定列的文本數據
-
-        :param csv_path: CSV 文件路徑
-        :param column: 需要提取的列名
-        :return: 提取的文本列表
-        """
-        df = pd.read_csv(csv_path)
-        if column not in df.columns:
-            raise ValueError(f"列 '{column}' 不存在於 CSV 文件中")
-        return [self.clean_text(str(row)) for row in df[column].dropna()]
-
     def preprocess_text(self, text: str) -> List[str]:
         """
         完整的文本預處理流程：
@@ -116,13 +103,12 @@ class Preprocessor:
         cleaned_text = self.clean_text(text)
         return self.chunk_text(cleaned_text)
 
-    def preprocess_file(self, file_path: str, file_type: str, column: str = None) -> List[dict]:
+    def preprocess_file(self, file_path: str, file_type: str) -> List[dict]:
         """
         處理不同類型的文件，並進行文本預處理，保留 metadata（檔案名稱、頁碼、時間戳）。
 
         :param file_path: 文件路徑
-        :param file_type: 文件類型（'pdf', 'txt', 'csv'）
-        :param column: CSV 文件中需要提取的列名（僅適用於 CSV）
+        :param file_type: 文件類型（'pdf', 'txt'）
         :return: 以 metadata 格式存儲的文本列表
         """
         file_name = os.path.basename(file_path)
@@ -132,11 +118,6 @@ class Preprocessor:
             raw_text_data = self.extract_text_from_pdf(file_path)
         elif file_type == "txt":
             raw_text = self.extract_text_from_txt(file_path)
-            raw_text_data = [{"file_name": file_name, "page_number": None, "text": raw_text}]
-        elif file_type == "csv":
-            if column is None:
-                raise ValueError("CSV 文件需要指定列名")
-            raw_text = " ".join(self.extract_text_from_csv(file_path, column))
             raw_text_data = [{"file_name": file_name, "page_number": None, "text": raw_text}]
         else:
             raise ValueError("不支持的文件類型，請選擇 'pdf', 'txt', 或 'csv'")

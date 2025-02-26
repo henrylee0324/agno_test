@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 from llama_index.core import SimpleDirectoryReader
 from llama_index.embeddings.openai import OpenAIEmbedding
 from llama_index.core import PropertyGraphIndex
-from llama_index.core.indices.property_graph import SchemaLLMPathExtractor, SimpleLLMPathExtractor
+from llama_index.core.indices.property_graph import SimpleLLMPathExtractor
 import shutil
 import os
 from .environment import Environment
@@ -18,34 +18,37 @@ class Indexer:
 
         return
     
-    def create_index(self, data_dir: str = "./data/documents_before_process", processed_dir: str = "./data/processed_documents"):
-        os.makedirs(processed_dir, exist_ok=True)
-        documents:list = self._get_documents(data_dir)
-        print(f"number of documents: {len(documents)}")
-        if len(documents) == 0:
-            return 
+    def create_index(self, file_path: str):
+        """
+        針對單一檔案建立索引，並將處理完成的檔案移動至 processed 資料夾。
+        :param file_path: 檔案的完整路徑
+        """
+        if not os.path.exists(file_path):
+            logger.error(f"檔案不存在: {file_path}")
+            return
+        try:
+            # 讀取單個檔案
+            document = SimpleDirectoryReader(input_files=[file_path]).load_data()
+            if not document:
+                logger.warning(f"無法讀取文件: {file_path}")
+                return
+            
+            # 建立索引
+            index = PropertyGraphIndex.from_documents(
+                documents=document,
+                embed_model=OpenAIEmbedding(model_name=self.embedding_model),
+                kg_extractors=[
+                    SimpleLLMPathExtractor(
+                        llm=OpenAI(model=self.llm, temperature=0.0)
+                    )
+                ],
+                property_graph_store=self.environment.get_graph_store(),
+                show_progress=True,
+            )
+            logger.debug(f"graph 處理文件 {file_path} 成功")
         
-        index = PropertyGraphIndex.from_documents(
-            documents,
-            embed_model=OpenAIEmbedding(model_name=self.embedding_model),
-            kg_extractors=[
-                SimpleLLMPathExtractor(
-                    llm=OpenAI(model=self.llm, temperature=0.0)
-                )
-            ],
-            property_graph_store=self.environment.get_graph_store(),
-            show_progress=True,
-        )
-        
-        # 處理完文件後，將它們移動到 processed_dir
-        for file_name in os.listdir(data_dir):
-            source_path = os.path.join(data_dir, file_name)
-            destination_path = os.path.join(processed_dir, file_name)
-            if os.path.isfile(source_path):
-                shutil.move(source_path, destination_path)
-                print(f"Moved: {file_name} -> {processed_dir}")
-        
-        return index
+        except Exception as e:
+            logger.error(f"處理文件 {file_path} 時發生錯誤: {e}")
     
     def get_index(self):
         index = PropertyGraphIndex.from_existing(
@@ -55,16 +58,6 @@ class Indexer:
         )
 
         return index
-
-    def _get_documents(self, data_dir:str):
-        self.data_dir = data_dir
-        os.makedirs(self.data_dir, exist_ok=True)
-        files = os.listdir(data_dir)
-        if not files:
-            return []
-        documents = SimpleDirectoryReader(self.data_dir).load_data()
-
-        return documents
     
 if __name__ == "__main__":
     indexer = Indexer()
