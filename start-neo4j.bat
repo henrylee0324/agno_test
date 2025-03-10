@@ -14,5 +14,4 @@ if %ERRORLEVEL% neq 0 (
         neo4j:latest
 )
 
-echo Neo4j successfully started!
 echo http://localhost:7474

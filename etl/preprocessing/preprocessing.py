@@ -7,6 +7,10 @@ import nltk
 from nltk.tokenize import sent_tokenize
 from datetime import datetime
 from bs4 import BeautifulSoup
+import asyncio
+from typing import List, Dict
+
+
 
 nltk.download('punkt_tab')
 
@@ -135,6 +139,40 @@ class Preprocessor:
                 })
 
         return chunked_data
+
+    async def apreprocess_file(self, file_path: str, file_type: str) -> List[Dict[str, str]]:
+        """
+        非同步處理不同類型的文件，並進行文本預處理，保留 metadata（檔案名稱、頁碼、時間戳）。
+        
+        :param file_path: 文件路徑
+        :param file_type: 文件類型 ('pdf', 'txt')
+        :return: 以 metadata 格式存儲的文本列表
+        """
+        file_name = os.path.basename(file_path)
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # 產生當前時間戳
+
+        if file_type == "pdf":
+            raw_text_data = await asyncio.to_thread(self.extract_text_from_pdf, file_path)
+        elif file_type == "txt":
+            raw_text = await asyncio.to_thread(self.extract_text_from_txt, file_path)
+            raw_text_data = [{"file_name": file_name, "page_number": None, "text": raw_text}]
+        else:
+            raise ValueError("不支持的文件類型，請選擇 'pdf', 'txt'")
+
+        # **處理文本分塊 (Chunking)**
+        chunked_data = []
+        for entry in raw_text_data:
+            chunks = await asyncio.to_thread(self.chunk_text, entry["text"])
+            for chunk in chunks:
+                chunked_data.append({
+                    "file_name": entry["file_name"],
+                    "page_number": entry["page_number"],  # PDF 才有頁碼，TXT 為 None
+                    "timestamp": timestamp,
+                    "chunk_text": chunk
+                })
+
+        return chunked_data
+
 
 
 

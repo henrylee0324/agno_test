@@ -1,15 +1,21 @@
-"""
-audio_file_path = r"C:\Users\User\Desktop\CathayAgent_prototype\test.mp3"
-text_prompt = speech_processor.process_audio(audio_file_path)
-if text_prompt:
-    text_prompt = text_prompt
-else:
-text_prompt_2 = " 有多少人或組織跟川普之間有利害關係?請給我清單。"
+import asyncio
 
-#print(text_prompt)
-v2m_team = initv2m()
-response_text = ""
-for response in v2m_team.ask(text_prompt):
-    response_text += response  # 拼接片段
-print(response_text.strip())  # 去除多餘空格
-"""
+async def amain(max_concurrent_reads=3):
+    # 建立一個 Semaphore，以限制同時執行的任務數量
+    semaphore = asyncio.Semaphore(max_concurrent_reads)
+
+    async def sample_task(task_id: int):
+        # 使用 async with 確保同時間不超過 max_concurrent_reads 個 task 在執行「關鍵區段」
+        async with semaphore:
+            print(f"Task {task_id} 正在執行...")
+            await asyncio.sleep(1)  # 模擬 I/O 或其他花費時間的操作
+            print(f"Task {task_id} 完成")
+
+    # 建立任務
+    tasks = [asyncio.create_task(sample_task(i)) for i in range(1, 11)]
+
+    # 同時等待所有任務結束
+    await asyncio.gather(*tasks)
+
+if __name__ == "__main__":
+    asyncio.run(amain(max_concurrent_reads=3))
